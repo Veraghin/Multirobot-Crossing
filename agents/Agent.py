@@ -1,8 +1,6 @@
 from abc import ABC, abstractmethod
 import numpy as np
 
-EPSILON = 1e-3
-
 
 class Agent(ABC):
     def __init__(self, name, position, goal, radius=0.3, simulation_step=0.1,
@@ -18,21 +16,25 @@ class Agent(ABC):
         self.noise = noise
         self.radius = radius
         self.preferred_speed = preferred_speed
-        self.max_speed = 1.
+        self.max_speed = max_speed
         self.preferred_velocity = np.zeros(2, dtype=np.float32)
 
+    # Returns advertised position; by default is robot's current knowledge of
+    # its position
     def get_position(self):
         return self.measured_pose
 
-    def set_position(self, pose):
-        self._ground_pose = pose
-
+    # Returns advertised velocity; by default is robot's current knowledge of
+    # its velocity
     def get_velocity(self):
         return self.measured_velocity
 
+    # Boolean test for being within threshold distance of goal
     def at_goal(self):
-        return np.linalg.norm(self._goal - self.measured_pose) < EPSILON
+        return np.linalg.norm(self._goal - self.measured_pose) < \
+               self.radius * 0.1 + self.noise
 
+    # Updates the robot's position according to its target_velocity
     def move(self):
         if self.noise:
             vel_noise = np.random.normal(0, self.noise, 2)
@@ -48,18 +50,7 @@ class Agent(ABC):
             self._ground_pose += self.dt * self.velocity
             self.measured_pose = self._ground_pose
 
-    def choose_preferred_velocity(self):
-        offset_to_goal = self._goal - self.measured_pose
-        dist_to_goal = np.linalg.norm(offset_to_goal)
-
-        if self.preferred_speed * self.dt > dist_to_goal:
-            # Can reach goal in one step
-            self.preferred_velocity = offset_to_goal / self.dt
-        else:
-            # Want to move at preferred speed in unit direction of goal
-            self.preferred_velocity = self.preferred_speed * \
-                                      offset_to_goal / dist_to_goal
-
+    # Controller for deciding the target_velocity for this time step
     @abstractmethod
     def choose_target_velocity(self, neighbours):
         pass
