@@ -72,7 +72,11 @@ class CooperativeAgent(Agent):
 
         # Of all the optimal candidates, find the one that is closest to the
         # desired velocity
-        self.target_velocity = self.choose_best_velocity(optimal_candidates)
+        target_velocity = self.choose_best_velocity(optimal_candidates)
+        if self.holonomic:
+            self.target_velocity = target_velocity
+        else:
+            self.target_velocity = self.compute_wheel_speeds(target_velocity)
 
     # Finds velocity in direction of goal at desired speed
     def choose_preferred_velocity(self):

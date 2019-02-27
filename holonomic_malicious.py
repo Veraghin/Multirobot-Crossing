@@ -6,7 +6,7 @@ from matplotlib.animation import FuncAnimation
 from agents.CooperativeAgent import CooperativeAgent
 from agents.SelfishAgent import SelfishAgent
 
-NUM_ROBOTS = 20
+NUM_ROBOTS = 10
 
 
 def colors_from(cmap_name, ncolors):
@@ -26,25 +26,16 @@ ax.set_ylim(-20, 20)
 robots_lines = []
 robot_location_hist = []
 robots = []
-starting_positions = []
-theta = 2 * np.pi / NUM_ROBOTS
-for j in range(20):
-    starting_positions.append(np.array([18 * np.cos(theta * j), 18 * np.sin(theta * j)]))
-
-for i in range(NUM_ROBOTS-1):
+for i in range(NUM_ROBOTS):
+    theta = 2 * np.pi * i / NUM_ROBOTS
+    pos = 15 * np.array([np.cos(theta), np.sin(theta)])
     ln, _ = plt.plot([], [], cs[i], animated=True)
-    agent = CooperativeAgent(i, starting_positions[i], -starting_positions[i])
+    agent_type = SelfishAgent if i == 3 else CooperativeAgent
+    agent = agent_type(i, pos, -pos, max_speed=4., preferred_speed=2., radius=2)
 
     robots_lines.append(ln)
-    robot_location_hist.append([np.copy(starting_positions[i])])
+    robot_location_hist.append([np.copy(pos)])
     robots.append(agent)
-
-i = NUM_ROBOTS - 1
-ln, _ = plt.plot([], [], cs[i], animated=True)
-agent = SelfishAgent(i, starting_positions[i], -starting_positions[i])
-robots_lines.append(ln)
-robot_location_hist.append([np.copy(starting_positions[i])])
-robots.append(agent)
 
 
 # Main simulation loop
