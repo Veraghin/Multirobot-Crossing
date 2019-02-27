@@ -33,8 +33,7 @@ starting_positions = [
 ]
 for i in range(NUM_ROBOTS):
     ln, _ = plt.plot([], [], cs[i], animated=True)
-    # agent_type = SelfishAgent if i == 3 else CooperativeAgent
-    agent = CooperativeAgent(i, starting_positions[i], -starting_positions[i], holonomic=False)
+    agent = CooperativeAgent(i, starting_positions[i], -starting_positions[i])
 
     robots_lines.append(ln)
     robot_location_hist.append([np.copy(starting_positions[i])])
