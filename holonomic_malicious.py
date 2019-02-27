@@ -3,8 +3,9 @@ import matplotlib.colors as colors
 import numpy as np
 from matplotlib.animation import FuncAnimation
 
-from agents.CooperativeAgent import CooperativeAgent
+from agents.SuspiciousAgent import SuspiciousAgent
 from agents.SelfishAgent import SelfishAgent
+from agents.malicious_detectors import history
 
 NUM_ROBOTS = 10
 
@@ -30,8 +31,12 @@ for i in range(NUM_ROBOTS):
     theta = 2 * np.pi * i / NUM_ROBOTS
     pos = 15 * np.array([np.cos(theta), np.sin(theta)])
     ln, _ = plt.plot([], [], cs[i], animated=True)
-    agent_type = SelfishAgent if i == 3 else CooperativeAgent
-    agent = agent_type(i, pos, -pos, max_speed=4., preferred_speed=2., radius=2)
+    if i == 1:
+        agent = SelfishAgent(i, pos, -pos, max_speed=4., preferred_speed=2.,
+                             radius=1)
+    else:
+        agent = SuspiciousAgent(i, pos, -pos, max_speed=4., preferred_speed=2.,
+                                radius=1, malicious_identifier=history(0.085))
 
     robots_lines.append(ln)
     robot_location_hist.append([np.copy(pos)])
