@@ -4,6 +4,7 @@ import numpy as np
 from matplotlib.animation import FuncAnimation
 
 from agents.CooperativeAgent import CooperativeAgent
+from agents.SelfishAgent import SelfishAgent
 
 NUM_ROBOTS = 4
 
@@ -33,7 +34,8 @@ starting_positions = [
 ]
 for i in range(NUM_ROBOTS):
     ln, _ = plt.plot([], [], cs[i], animated=True)
-    agent = CooperativeAgent(i, starting_positions[i], -starting_positions[i])
+    agent_type = SelfishAgent if i == 3 else CooperativeAgent
+    agent = agent_type(i, starting_positions[i], -starting_positions[i])
 
     robots_lines.append(ln)
     robot_location_hist.append([np.copy(starting_positions[i])])
