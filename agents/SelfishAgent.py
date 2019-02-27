@@ -15,8 +15,13 @@ class SelfishAgent(Agent):
 
         if self.preferred_speed * self.dt > dist_to_goal:
             # Can reach goal in one step
-            self.target_velocity = offset_to_goal / self.dt
+            target_velocity = offset_to_goal / self.dt
         else:
             # Want to move at preferred speed in unit direction of goal
-            self.target_velocity = self.preferred_speed * \
-                                   offset_to_goal / dist_to_goal
+            target_velocity = self.preferred_speed * \
+                              offset_to_goal / dist_to_goal
+
+        if self.holonomic:
+            self.target_velocity = target_velocity
+        else:
+            self.target_velocity = self.compute_wheel_speeds(target_velocity)
