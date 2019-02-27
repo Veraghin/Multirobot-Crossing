@@ -23,6 +23,10 @@ class Agent(ABC):
     # its position
     def get_position(self):
         return self.measured_pose
+    
+    # Returns the id of the robot
+    def get_id(self):
+        return self.id
 
     # Returns advertised velocity; by default is robot's current knowledge of
     # its velocity
