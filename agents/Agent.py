@@ -1,13 +1,22 @@
-from abc import ABC, abstractmethod
+#from abc import ABC, abstractmethod
 import numpy as np
+import rospy
+from gazebo_msgs.msg import ModelStates
+from tf.transformations import euler_from_quaternion
 
+X = 0
+Y = 1
+YAW = 2
 
-class Agent(ABC):
-    def __init__(self, name, position, goal, holonomic=True, orientation=0,
-                 radius=0.3, wheel_base=0.3, time_to_orientation=0.2,
-                 simulation_step=0.1, preferred_speed=0.5, max_speed=1.,
-                 noise=0):
-        self.id = name
+class Agent(object):
+    def __init__(self, number, publisher, position, goal, orientation, name='turtlebot3_', holonomic=False,
+                 radius=0.105, wheel_base=0.016, time_to_orientation=0.2,
+                 simulation_step=0.1, preferred_speed=0.15, max_speed=0.22,
+                 noise=0.0):
+        rospy.Subscriber('/gazebo/model_states', ModelStates, self.callback)
+        self._number = number
+        self._publisher = publisher
+        self._id = name + str(number) + 'burger'
         self._ground_pose = position
         self.measured_pose = position
         self._goal = goal
@@ -36,15 +45,42 @@ class Agent(ABC):
     # its velocity
     def get_velocity(self):
         return self.measured_velocity
-
+        
     # Returns current orientation
     def get_orientation(self):
         return self.measured_orientation
+        
+    @property
+    def publisher(self):
+      return self._publisher
+    
+    @property
+    def number(self):
+      return self._number
+      
+    @property
+    def ready(self):
+      return not np.isnan(self.get_position()[0])
 
     # Boolean test for being within threshold distance of goal
     def at_goal(self):
         return np.linalg.norm(self._goal - self.measured_pose) < \
-               self.radius * 0.1 + self.noise
+               self.radius * 0.3 + self.noise
+
+    # Updates agent position based on gazebo location readings 
+    def callback(self, msg):
+      idx = [i for i, n in enumerate(msg.name) if n == self._id]
+      if not idx:
+        raise ValueError('Specified name "{}" does not exist.'.format(self._id))
+      idx = idx[0]
+      self._ground_pose[X] = msg.pose[idx].position.x
+      self._ground_pose[Y] = msg.pose[idx].position.y
+      _, _, yaw = euler_from_quaternion([
+        msg.pose[idx].orientation.x,
+        msg.pose[idx].orientation.y,
+        msg.pose[idx].orientation.z,
+        msg.pose[idx].orientation.w])
+      self._ground_orientation = yaw
 
     def compute_wheel_speeds(self, target_velocity):
         orientation = self.get_orientation()
@@ -117,6 +153,9 @@ class Agent(ABC):
             self._ground_pose += self.dt * delta_pose
             self.measured_pose = self._ground_pose + pos_noise
 
+            self.orientation_change = wheel_speed_diff * self.dt / \
+                self.wheel_base + orientation_noise + orientation_measured_noise
+                
             self._ground_orientation += wheel_speed_diff * self.dt / \
                 self.wheel_base + orientation_noise
             self.measured_orientation = self._ground_orientation + \
@@ -127,8 +166,10 @@ class Agent(ABC):
                 np.sin(self.measured_orientation)
             ]) + vel_noise
             self.measured_velocity = self._ground_velocity + vel_measure_noise
+            
+      
 
     # Controller for deciding the target_velocity for this time step
-    @abstractmethod
+
     def choose_target_velocity(self, neighbours):
         pass

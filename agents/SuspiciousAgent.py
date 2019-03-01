@@ -6,6 +6,7 @@ import numpy as np
 class SuspiciousAgent(CooperativeAgent):
     def __init__(self, *args, **kwargs):
         malicious_identifier = kwargs.pop("malicious_identifier", lambda _: [])
+        print(malicious_identifier)
         super(SuspiciousAgent, self).__init__(*args, **kwargs)
         self.malicious_identifier = malicious_identifier
 

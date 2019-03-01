@@ -3,7 +3,7 @@ import numpy as np
 
 def oracle(malicious):
     def identifier(neighbours):
-        return [n for n in neighbours if n.id == malicious]
+        return [n for n in neighbours if n._id == malicious]
 
     return identifier
 
@@ -18,7 +18,7 @@ def history(threshold):
         if len(neighbours) == 0:
             enough_data = False
         for n in neighbours:
-            name = n.id
+            name = n._id
             heading = n.get_velocity()
             if name in historical_headings.keys():
                 historical_headings[name].append(heading)
@@ -36,5 +36,5 @@ def history(threshold):
                     change += np.linalg.norm(headings[i + 1] - headings[i])
                 if change / (len(headings) - 1) < threshold:
                     malicious.append(n)
-        return [n for n in neighbours if n.id in malicious]
+        return [n for n in neighbours if n._id in malicious]
     return identifier
