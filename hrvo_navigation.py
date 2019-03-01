@@ -9,7 +9,6 @@ import numpy as np
 import os
 import rospy
 import sys
-from agents.robot import robot
 from agents.Agent import Agent
 from agents.CooperativeAgent import CooperativeAgent
 from agents.SuspiciousAgent import SuspiciousAgent
@@ -27,10 +26,6 @@ import math
 # Import the potential_field.py code rather than copy-pasting.
 directory = os.path.join(os.path.dirname(os.path.realpath(__file__)), '../python')
 sys.path.insert(0, directory)
-try:
-  import potential_field
-except ImportError:
-  raise ImportError('Unable to import potential_field.py. Make sure this file is in "{}"'.format(directory))
 
 POSITION_1 = np.array([-1.5, -1.5], dtype=np.float32)
 POSITION_2 = np.array([-1.5, 1.5], dtype=np.float32)
@@ -40,7 +35,7 @@ GOAL_POSITIONS = [-POSITION_1, -POSITION_2, -POSITION_3, -POSITION_4]
 POSITIONS = [POSITION_1, POSITION_2, POSITION_3, POSITION_4]
 
 def run(args):
-  rospy.init_node('potential_field_navigation')
+  rospy.init_node('hrvo_navigation')
   number_of_bots = int(args.num)
   mode = args.mode
   
