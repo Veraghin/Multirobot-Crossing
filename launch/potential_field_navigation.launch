@@ -1,6 +1,0 @@
-<launch>
-	<arg name="mode" />
-	<arg name="num"  />
-
-	<node pkg="exercises" type="potential_field_navigation.py" name="potential_field_navigation" output="screen" args="--num=$(arg num)"></node>
-</launch>
