@@ -8,10 +8,12 @@ X = 0
 Y = 1
 YAW = 2
 
+
 class Agent(object):
-    def __init__(self, number, publisher, position, goal, orientation, name='turtlebot3_', holonomic=False,
-                 radius=0.105, wheel_base=0.016, time_to_orientation=0.2,
-                 simulation_step=0.1, preferred_speed=0.15, max_speed=0.22,
+    def __init__(self, number, publisher, position, goal, orientation,
+                 name='turtlebot3_', holonomic=False, radius=0.105,
+                 wheel_base=0.016, time_to_orientation=0.2, simulation_step=0.1,
+                 preferred_speed=0.15, max_speed=0.22, neighbour_range=np.infty,
                  noise=0.0):
         rospy.Subscriber('/gazebo/model_states', ModelStates, self.callback)
         self._number = number
@@ -30,6 +32,7 @@ class Agent(object):
         self.max_speed = max_speed
         self.preferred_velocity = np.zeros(2, dtype=np.float32)
         self.holonomic = holonomic
+        self.neighbour_range = neighbour_range
         if not holonomic:
             self._ground_orientation = orientation
             self.measured_orientation = orientation

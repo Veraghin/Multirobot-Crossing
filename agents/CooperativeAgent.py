@@ -104,6 +104,8 @@ class CooperativeAgent(Agent):
             neighbour_velocity = neighbour.get_velocity()
             offset = neighbour_position - position
             distance = np.linalg.norm(offset)
+            if distance > self.neighbour_range:
+                continue
 
             if distance > 2 * self.radius:
                 # Robots have not collided
