@@ -1,22 +1,21 @@
-import matplotlib.pyplot as plt
-import matplotlib.colors as colors
 import numpy as np
 import argparse
-from matplotlib.animation import FuncAnimation
 
 from agents.CooperativeAgent import CooperativeAgent
 from agents.SelfishAgent import SelfishAgent
 from agents.SuspiciousAgent import SuspiciousAgent
 from agents.malicious_detectors import history, oracle
 
-class Simulator():
-    def __init__(self,args):
-        self.num_robots = args.number_of_robots
-        self.starting_radius = 5
 
-    def run(self, mode="coop", identifier="oracle", current_noise = 0.0):
+class Simulator:
+    def __init__(self, total_num_robots, radius=5):
+        self.num_robots = total_num_robots
+        self.starting_radius = radius
+
+    def run(self, mode="coop", identifier="oracle", detection_range=np.infty, current_noise=0.0):
+        if mode not in ["coop", "unaware", "aware"]:
+            mode = "coop"
         # Initialise robots with starting positions and goals
-        self.steps_taken = 0
         robot_location_hist = []
         robots = []
         for i in range(self.num_robots):
@@ -25,14 +24,20 @@ class Simulator():
             diff = (-pos) - pos
             orientation = np.arctan2(diff[1], diff[0])
             if i == self.num_robots - 1 and mode != "coop":
-                agent = SelfishAgent(i, None, pos, -pos, orientation, noise=current_noise)
-            elif mode == "coop":
-                agent = CooperativeAgent(i, None, pos, -pos, orientation, noise=current_noise)
-            elif mode == "aware":
+                agent = SelfishAgent(i, None, pos, -pos, orientation,
+                                     neighbour_range=detection_range, noise=current_noise)
+            elif mode == "coop" or mode == "unaware":
+                agent = CooperativeAgent(i, None, pos, -pos, orientation,
+                                         neighbour_range=detection_range, noise=current_noise)
+            else:  # mode == "aware"
                 if identifier == "oracle":
-                    agent = SuspiciousAgent(i, None, pos, -pos, orientation, noise=current_noise, malicious_identifier=oracle(self.num_robots -1))
+                    agent = SuspiciousAgent(i, None, pos, -pos, orientation,
+                                            neighbour_range=detection_range, noise=current_noise,
+                                            malicious_identifier=oracle(self.num_robots - 1))
                 else:
-                    agent = SuspiciousAgent(i, None, pos, -pos, orientation, noise=current_noise, malicious_identifier=history(0.085))
+                    agent = SuspiciousAgent(i, None, pos, -pos, orientation,
+                                            neighbour_range=detection_range, noise=current_noise,
+                                            malicious_identifier=history(0.085))
             robot_location_hist.append([np.copy(pos)])
             robots.append(agent)
 
@@ -43,7 +48,7 @@ class Simulator():
                 for o in others:
                     # radius=0.105
                     if np.linalg.norm(r._ground_pose - o._ground_pose) <= .21:
-                        num +=1
+                        num += 1
             return num
 
         # Run simulation
@@ -69,14 +74,13 @@ class Simulator():
                 robot_location_hist[robot].append(np.copy(robots[robot]._ground_pose))
             collisions_total += collisions(robots)
         return steps_taken, collisions_total
-    
-    def output_to_csv(self):
-        pass
+
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Runs the simulation simulation')
     parser.add_argument('--number_of_robots', action='store', default=4, help='The number of robots in the simulation')
     args = parser.parse_args()
-    sim = Simulator(args)
+    sim = Simulator(args.number_of_robots)
+
     print(sim.run())
     print(sim.run(mode="aware"))
