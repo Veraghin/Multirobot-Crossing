@@ -6,7 +6,6 @@ import numpy as np
 class SuspiciousAgent(CooperativeAgent):
     def __init__(self, *args, **kwargs):
         malicious_identifier = kwargs.pop("malicious_identifier", lambda _: [])
-        print(malicious_identifier)
         super(SuspiciousAgent, self).__init__(*args, **kwargs)
         self.malicious_identifier = malicious_identifier
 
@@ -25,6 +24,8 @@ class SuspiciousAgent(CooperativeAgent):
             neighbour_velocity = neighbour.get_velocity()
             offset = neighbour_position - position
             distance = np.linalg.norm(offset)
+            if distance > self.neighbour_range:
+                continue
 
             if distance > 2 * self.radius:
                 # Robots have not collided
