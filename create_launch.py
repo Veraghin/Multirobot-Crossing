@@ -20,7 +20,7 @@ def run(args):
   
   for i in range(num_bots):
     theta = 2 * np.pi * i / num_bots
-    pos = 1.5 * np.array([np.cos(theta), np.sin(theta)])
+    pos = 2.5 * np.array([np.cos(theta), np.sin(theta)])
     
     direction = -pos
     angle = np.arctan2(direction[1], direction[0])
