@@ -61,20 +61,20 @@ for repetition in range(5):
 
 # Plot of min, median and max time taken to get to the goal,
 # divided up by noise in the system and mode of operation of the robots
-fig, axes = plt.subplots(3, 3)
+fig, axes = plt.subplots(3,3)
 outsideX = ["Unaware", "Aware\nOracle", "Aware\nHistory"]
-outsideY = ["Noise: %.2f" % n for n in noise_values]
-pad = 5  # in points
+outsideY = ["Noise: %.2f" % n for n in noise_values ]
+pad = 5 # in points
 for ax, col in zip(axes[0], outsideY):
     ax.annotate(col, xy=(0.5, 1), xytext=(0, pad),
                 xycoords='axes fraction', textcoords='offset points',
                 size='large', ha='center', va='baseline')
 
-for ax, row in zip(axes[:, 0], outsideX):
+for ax, row in zip(axes[:,0], outsideX):
     ax.annotate(row, xy=(0, 0.5), xytext=(-ax.yaxis.labelpad - pad, 0),
                 xycoords=ax.yaxis.label, textcoords='offset points',
                 size='large', ha='right', va='center')
-plt.setp(axes.flat, xlabel='X-label', ylabel='Y-label')
+plt.setp(axes.flat, xlabel='Number of Robots', ylabel='Collisions')
 for n in range(len(noise_values)):
     for m in range(len(collision_modes)):
         mine = [[] for i in num_robots_for_collision]
@@ -86,8 +86,10 @@ for n in range(len(noise_values)):
             med[i].append(np.median(val, axis=0)[1])
             maxe[i].append(np.amax(val, axis=0)[1])
         axes[n][m].set_xticks(num_robots_for_collision)
-        axes[n][m].plot(num_robots_for_collision, mine, 'rv', num_robots_for_collision, med, 'bo',
-                        num_robots_for_collision, maxe, 'g^')
+        axes[n][m].plot(num_robots_for_collision, mine, 'rv', num_robots_for_collision, med, 'bo', num_robots_for_collision, maxe, 'g^')
 fig.tight_layout()
+# tight_layout doesn't take these labels into account. We'll need
+# to make some room. These numbers are are manually tweaked.
+# You could automatically calculate them, but it's a pain.
 fig.subplots_adjust(left=0.2, top=0.95)
 plt.show()
