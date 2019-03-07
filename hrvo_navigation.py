@@ -27,13 +27,6 @@ import math
 directory = os.path.join(os.path.dirname(os.path.realpath(__file__)), '../python')
 sys.path.insert(0, directory)
 
-POSITION_1 = np.array([-1.5, -1.5], dtype=np.float32)
-POSITION_2 = np.array([-1.5, 1.5], dtype=np.float32)
-POSITION_3 = np.array([1.5, 1.5], dtype=np.float32)
-POSITION_4 = np.array([1.5, -1.5], dtype=np.float32)
-GOAL_POSITIONS = [-POSITION_1, -POSITION_2, -POSITION_3, -POSITION_4]
-POSITIONS = [POSITION_1, POSITION_2, POSITION_3, POSITION_4]
-
 def run(args):
   rospy.init_node('hrvo_navigation')
   number_of_bots = int(args.num)
@@ -46,17 +39,23 @@ def run(args):
   
   # Initialise Agents
   for i in range(number_of_bots):
+  
+    theta = 2 * np.pi * i / number_of_bots
+    pos = 2.5 * np.array([np.cos(theta), np.sin(theta)])
+
+    direction = -pos
+    orientation = np.arctan2(direction[1], direction[0])
+  
     publisher = rospy.Publisher('/r'+str(i)+'/cmd_vel', Twist, queue_size=5)
-    diff = GOAL_POSITIONS[i] - POSITIONS[i]
-    orientation = np.arctan2(diff[1], diff[0])
+    
     if mode == 'malicious':
       if i == 1:
-          agent = SelfishAgent(i, publisher, POSITIONS[i], GOAL_POSITIONS[i], orientation)
+          agent = SelfishAgent(i, publisher, pos, -pos, orientation)
       else:
-          agent = SuspiciousAgent(i, publisher, POSITIONS[i], GOAL_POSITIONS[i],
+          agent = SuspiciousAgent(i, publisher, pos, -pos,
                        orientation, malicious_identifier=history(0.085))
     else:
-      agent = CooperativeAgent(i, publisher, POSITIONS[i], GOAL_POSITIONS[i], orientation)
+      agent = CooperativeAgent(i, publisher, pos, -pos, orientation)
       
     robot_list.append(agent)
     
@@ -88,7 +87,7 @@ def run(args):
       
       # Publishing next step velocity / yaw to robot
       vel_msg = Twist()
-      vel_msg.linear.x = np.linalg.norm(v)
+      vel_msg.linear.x = v[0]*np.cos(w) + v[1]*np.sin(w)
       vel_msg.angular.z = robot.orientation_change
       robot.publisher.publish(vel_msg)
       pos_list.append(robot.get_position())

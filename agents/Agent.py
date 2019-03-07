@@ -14,6 +14,7 @@ class Agent(object):
                  name='turtlebot3_', holonomic=False, radius=0.105,
                  wheel_base=0.016, time_to_orientation=0.2, simulation_step=0.1,
                  preferred_speed=0.15, max_speed=0.22, neighbour_range=np.infty,
+
                  noise=0.0):
         rospy.Subscriber('/gazebo/model_states', ModelStates, self.callback)
         self._number = number
@@ -128,6 +129,13 @@ class Agent(object):
 
     # Updates the robot's position according to its target_velocity
     def move(self):
+    
+        if self.at_goal():
+            self._ground_velocity = np.zeros(2, dtype=np.float32)
+            self.measured_velocity = np.zeros(2, dtype=np.float32)
+            self.orientation_change = 0
+            return
+            
         if self.noise:
             vel_noise = np.random.normal(0, self.noise, 2)
             pos_noise = np.random.normal(0, self.noise, 2)
@@ -157,7 +165,7 @@ class Agent(object):
             self.measured_pose = self._ground_pose + pos_noise
 
             self.orientation_change = wheel_speed_diff * self.dt / \
-                self.wheel_base + orientation_noise + orientation_measured_noise
+                self.wheel_base + orientation_noise
                 
             self._ground_orientation += wheel_speed_diff * self.dt / \
                 self.wheel_base + orientation_noise
