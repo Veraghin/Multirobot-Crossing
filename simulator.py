@@ -1,6 +1,6 @@
 import numpy as np
 import argparse
-
+import time
 from agents.CooperativeAgent import CooperativeAgent
 from agents.SelfishAgent import SelfishAgent
 from agents.SuspiciousAgent import SuspiciousAgent
@@ -8,9 +8,12 @@ from agents.malicious_detectors import history, oracle
 
 
 class Simulator:
-    def __init__(self, total_num_robots, radius=5):
-        self.num_robots = total_num_robots
+    def __init__(self, total_num_robots, radius=10):
+        self.num_robots = int(total_num_robots)
         self.starting_radius = radius
+        self.robot_rad = .5
+        self.pref_speed = 2.0
+        self.max_speed = 4.0
 
     def run(self, mode="coop", identifier="oracle", detection_range=np.infty, current_noise=0.0):
         if mode not in ["coop", "unaware", "aware"]:
@@ -24,18 +27,26 @@ class Simulator:
             diff = (-pos) - pos
             orientation = np.arctan2(diff[1], diff[0])
             if i == self.num_robots - 1 and mode != "coop":
-                agent = SelfishAgent(i, None, pos, -pos, orientation,
+                agent = SelfishAgent(i, None, pos, -pos, orientation, radius=self.robot_rad,
+                                     preferred_speed=self.pref_speed,
+                                     max_speed=self.max_speed,
                                      neighbour_range=detection_range, noise=current_noise)
             elif mode == "coop" or mode == "unaware":
-                agent = CooperativeAgent(i, None, pos, -pos, orientation,
+                agent = CooperativeAgent(i, None, pos, -pos, orientation, radius=self.robot_rad,
+                                         preferred_speed=self.pref_speed,
+                                         max_speed=self.max_speed,
                                          neighbour_range=detection_range, noise=current_noise)
             else:  # mode == "aware"
                 if identifier == "oracle":
-                    agent = SuspiciousAgent(i, None, pos, -pos, orientation,
+                    agent = SuspiciousAgent(i, None, pos, -pos, orientation, radius=self.robot_rad,
+                                            preferred_speed=self.pref_speed,
+                                            max_speed=self.max_speed,
                                             neighbour_range=detection_range, noise=current_noise,
                                             malicious_identifier=oracle(self.num_robots - 1))
                 else:
-                    agent = SuspiciousAgent(i, None, pos, -pos, orientation,
+                    agent = SuspiciousAgent(i, None, pos, -pos, orientation, radius=self.robot_rad,
+                                            preferred_speed=self.pref_speed,
+                                            max_speed=self.max_speed,
                                             neighbour_range=detection_range, noise=current_noise,
                                             malicious_identifier=history(0.085))
             robot_location_hist.append([np.copy(pos)])
@@ -47,7 +58,7 @@ class Simulator:
                 others = [o for o in robots if r.number != o.number]
                 for o in others:
                     # radius=0.105
-                    if np.linalg.norm(r._ground_pose - o._ground_pose) <= .21:
+                    if np.linalg.norm(r._ground_pose - o._ground_pose) <= 2 * self.robot_rad:
                         num += 1
             return num
 
@@ -78,9 +89,11 @@ class Simulator:
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Runs the simulation simulation')
-    parser.add_argument('--number_of_robots', action='store', default=4, help='The number of robots in the simulation')
+    parser.add_argument('--number_of_robots', action='store', type=int, default=4,
+                        help='The number of robots in the simulation')
     args = parser.parse_args()
     sim = Simulator(args.number_of_robots)
-
-    print(sim.run())
-    print(sim.run(mode="aware"))
+    start = time.time()
+    print(sim.run(mode="aware", current_noise=0.0))
+    end = time.time()
+    print(end - start)
