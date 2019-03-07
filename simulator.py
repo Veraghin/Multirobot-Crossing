@@ -8,7 +8,7 @@ from agents.malicious_detectors import history, oracle
 
 
 class Simulator:
-    def __init__(self, total_num_robots, radius=10):
+    def __init__(self, total_num_robots, radius=5):
         self.num_robots = int(total_num_robots)
         self.starting_radius = radius
         self.robot_rad = .5
